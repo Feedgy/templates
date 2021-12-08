@@ -35,5 +35,5 @@ jobs:
         run: |
           git config --local user.email ${{ inputs.bot_mail }}
           git config --local user.name ${{ inputs.bot_name }}
-          git merge ${{ inputs.source_branch }} --no-ff
+          git merge ${{ inputs.source_branch }} --no-ff --no-edit
           git push
