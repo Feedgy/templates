@@ -31,6 +31,7 @@ jobs:
         with:
           ref: ${{ inputs.target_branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
       - name: "merge branch"
         run: |
           git config --local user.email ${{ inputs.bot_mail }}
