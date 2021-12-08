@@ -33,6 +33,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: "merge branch"
         run: |
+          git fetch --all
           git config --local user.email ${{ inputs.bot_mail }}
           git config --local user.name ${{ inputs.bot_name }}
           git merge ${{ inputs.source_branch }} --no-ff --no-edit
