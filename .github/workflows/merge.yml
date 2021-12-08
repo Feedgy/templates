@@ -31,9 +31,9 @@ jobs:
         with:
           ref: ${{ inputs.target_branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
-			- name: "merge branch"
-				runs: |
-					git config --local user.email ${{ inputs.bot_mail }}
+      - name: "merge branch"
+        runs: |
+          git config --local user.email ${{ inputs.bot_mail }}
           git config --local user.name ${{ inputs.bot_name }}
-					git merge ${{ inputs.source_branch }} --no-ff
-					git push
+          git merge ${{ inputs.source_branch }} --no-ff
+          git push
