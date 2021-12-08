@@ -1,0 +1,39 @@
+name: merge
+
+# configure as reusable workflow
+on:
+  workflow_call:
+    inputs:
+      target_branch:
+        required: true
+        type: string
+      source_branch:
+        required: true
+        type: string
+      bot_name:
+        required: false
+        type: string
+        default: "Super Bot"
+      bot_mail:
+        required: false
+        type: string
+        default: bot@feedgy.solar
+    secrets:
+      GITHUB_TOKEN:
+        required: false
+        description: "token to have access to code repository and registry (passed by caller workflow)"
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.target_branch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+			- name: "merge branch"
+				runs: |
+					git config --local user.email "bot@feedgy.solar"
+          git config --local user.name "Super Bot"
+					git merge ${{ inputs.source_branch }} --no-ff
+					git push
