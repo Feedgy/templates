@@ -19,8 +19,8 @@ on:
         type: string
         default: bot@feedgy.solar
     secrets:
-      GITHUB_TOKEN:
-        required: false
+      ACCESS_TOKEN:
+        required: true
         description: "token to have access to code repository and registry (passed by caller workflow)"
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ inputs.target_branch }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
       - name: "merge branch"
         run: |
