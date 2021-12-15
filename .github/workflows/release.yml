@@ -136,7 +136,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           file: ${{ inputs.dockerfile_path }}
           cache-from: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}:buildcache-${{ inputs.branch }}
-          cache-to: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}-${{ inputs.branch }}:buildcache,mode=max
+          cache-to: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}:buildcache-${{ inputs.branch }},mode=max
 
   release:
     runs-on: ubuntu-latest
