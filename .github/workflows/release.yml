@@ -50,12 +50,12 @@ on:
         default: master
         description: 'default branch for the infra repository'
     secrets:
-      GITHUB_TOKEN:
-        required: false
-        description: 'token to have access to code repository and registry (passed by caller workflow)'
-      ACCESS_TOKEN: 
-        required: false
-        description: 'token to have access to code and infra repository (passed by caller workflow)'
+      registry_token:
+        required: true
+        description: 'token to have access to registry'
+      repos_token: 
+        required: true
+        description: 'token to have access to code and infra repository'
 
 
 jobs:
@@ -68,13 +68,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          token: ${{ secrets.ACCESS_TOKEN}}
+          token: ${{ secrets.repos_token}}
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.0
         with:
           # use PAT token to enable to merge production in master at release
-          github_token: ${{ secrets.ACCESS_TOKEN}}
+          github_token: ${{ secrets.repos_token}}
           release_branches: ${{ inputs.release_branches }}
           pre_release_branches: ${{ inputs.pre_release_branches }}
   deploy-docker:
@@ -99,7 +99,7 @@ jobs:
         with:
           registry: ${{ inputs.registry }}
           username: ${{ inputs.username }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.registry_token }}
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
@@ -107,7 +107,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.registry_token }}
           images: ${{ inputs.registry }}/${{ inputs.IMAGE_NAME }}
           tags: |
             type=semver, pattern={{raw}}, value=${{needs.tag.outputs.new_tag}}
@@ -148,7 +148,7 @@ jobs:
         with:
           repository: ${{ inputs.infra_repository }}
           ref: ${{ inputs.infra_main_branch }}
-          token: ${{ secrets.ACCESS_TOKEN }}
+          token: ${{ secrets.repos_token }}
       - uses: actions/setup-python@v2
       - name: "install pyyaml"
         run: pip install pyyaml 
