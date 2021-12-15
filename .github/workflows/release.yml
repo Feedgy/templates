@@ -123,6 +123,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: ${{ inputs.dockerfile_path }}
+          cache-from: type=registry,ref=user/app:buildcache
+          cache-to: type=registry,ref=user/app:buildcache,mode=max
 
   release:
     runs-on: ubuntu-latest
