@@ -49,6 +49,16 @@ on:
         type: string
         default: master
         description: 'default branch for the infra repository'
+      push_name:
+        required: false
+        type: string
+        default: 'Super Bot'
+        description: 'name of the user who will push on infra repository'
+      push_mail:
+        required: false
+        type: string
+        default: 'bot@feedgy.solar'
+        description: 'mail of the user who will push on infra repository'
     secrets:
       registry_token:
         required: true
@@ -184,7 +194,7 @@ jobs:
 
           # push the modification
           git add values-${{ inputs.branch }}.yaml
-          git config --local user.email "bot@feedgy.solar"
-          git config --local user.name "Super Bot"
+          git config --local user.email "${{ inputs.push_mail }}"
+          git config --local user.name "${{ inputs.push_name }}"
           git commit -m "upgrade ${{ inputs.APP_NAME }} on ${{ inputs.branch }} environment to ${{ needs.deploy-docker.outputs.pushed_tag }}"
           git push
