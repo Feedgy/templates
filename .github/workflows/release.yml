@@ -17,6 +17,15 @@ on:
         required: true
         type: string
         description: 'name of the image'
+      docker_context:
+        required: false
+        type: string 
+        default: .
+        description: 'context of build for docker'
+      docker_build_args:
+        required: false
+        type: string
+        description: 'docker build args split by ,'
       dockerfile_path: 
         required: false
         type: string 
@@ -140,13 +149,14 @@ jobs:
         uses: docker/build-push-action@v2
         id: build
         with:
-          context: .
+          context: ${{ inputs.docker_context }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: ${{ inputs.dockerfile_path }}
           cache-from: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}:buildcache-${{ inputs.branch }}
           cache-to: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}:buildcache-${{ inputs.branch }},mode=max
+          build-args: ${{ inputs.docker_build_args }}
 
   release:
     runs-on: ubuntu-latest
