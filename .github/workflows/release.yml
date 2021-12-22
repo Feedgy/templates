@@ -25,7 +25,7 @@ on:
       docker_build_args:
         required: false
         type: string
-        description: 'docker build args split by ,'
+        description: 'docker build args formated in multiline string with |'
       dockerfile_path: 
         required: false
         type: string 
