@@ -66,7 +66,6 @@ on:
       push_mail:
         required: false
         type: string
-        default: 'bot@osan.me'
         description: 'mail of the user who will push on infra repository'
     secrets:
       registry_token:
