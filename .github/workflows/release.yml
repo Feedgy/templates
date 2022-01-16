@@ -66,7 +66,7 @@ on:
       push_mail:
         required: false
         type: string
-        default: 'bot@feedgy.solar'
+        default: 'bot@osan.me'
         description: 'mail of the user who will push on infra repository'
     secrets:
       registry_token:
@@ -78,6 +78,9 @@ on:
 
 
 jobs:
+
+
+
   tag:
     runs-on: ubuntu-latest
     outputs:
@@ -96,6 +99,7 @@ jobs:
           github_token: ${{ secrets.repos_token}}
           release_branches: ${{ inputs.release_branches }}
           pre_release_branches: ${{ inputs.pre_release_branches }}
+
   deploy-docker:
     runs-on: ubuntu-latest
     permissions:
@@ -126,7 +130,7 @@ jobs:
       # https://github.com/docker/login-action
       - name: Log into registry ${{ inputs.registry }}
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+        uses: docker/login-action@v1
         with:
           registry: ${{ inputs.registry }}
           username: ${{ inputs.username }}
