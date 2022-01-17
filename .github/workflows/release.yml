@@ -133,7 +133,7 @@ jobs:
         with:
           registry: ${{ inputs.registry }}
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.repos_token }}
+          password: ${{ secrets.registry_token }}
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
@@ -141,7 +141,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@e5622373a38e60fb6d795a4421e56882f2d7a681
         with:
-          github-token: ${{ secrets.repos_token }}
+          github-token: ${{ secrets.registry_token }}
           images: ${{ steps.image_registry_lower.outputs.lowercase }}
           tags: |
             type=semver, pattern={{raw}}, value=${{needs.tag.outputs.new_tag}}
