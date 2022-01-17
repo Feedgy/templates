@@ -17,6 +17,7 @@ on:
       bot_mail:
         required: false
         type: string
+        default: bot@feedgy.solar
     secrets:
       ACCESS_TOKEN:
         required: true
