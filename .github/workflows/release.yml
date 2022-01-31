@@ -73,6 +73,10 @@ on:
         type: boolean
         default: false
         description: 'build only with the new version of tag'
+      aws_pip:
+        required: false
+        type: boolean
+        default: false
     secrets:
       registry_token:
         required: true
@@ -149,10 +153,29 @@ jobs:
           tags: |
             type=semver, pattern={{raw}}, value=${{needs.tag.outputs.new_tag}}
             type=ref, event=branch
+      -   name: Configure AWS Credentials
+          uses: aws-actions/configure-aws-credentials@v1
+          if: ${{ inputs.aws_pip }}
+          with:
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws-region: eu-west-3
+      -   name: Get token PIP index to access code artifact
+          id: index-creation
+          if: ${{ inputs.aws_pip }}
+          run: |
+              CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain feedgy --domain-owner 687044813332 --query authorizationToken --output text`
+              PIP_INDEX_URL="https://aws:$CODEARTIFACT_AUTH_TOKEN@feedgy-687044813332.d.codeartifact.eu-west-3.amazonaws.com/pypi/feedgy-ref/simple/"
+              echo "::set-output name=PIP_INDEX_URL::$PIP_INDEX_URL"
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        if: ${{ inputs.aws_pip }}
+        id: build
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
+        if: ${{ failure() }}
         id: build
         with:
           context: ${{ inputs.docker_context }}
