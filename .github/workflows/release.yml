@@ -68,6 +68,11 @@ on:
         type: string
         default: 'bot@feedgy.solar'
         description: 'mail of the user who will push on infra repository'
+      dry_run: 
+        required: false
+        type: boolean
+        default: false
+        description: 'build only with the new version of tag'
     secrets:
       registry_token:
         required: true
@@ -96,6 +101,7 @@ jobs:
           github_token: ${{ secrets.repos_token}}
           release_branches: ${{ inputs.release_branches }}
           pre_release_branches: ${{ inputs.pre_release_branches }}
+          dry_run: ${{ inputs.dry_run }}
   deploy-docker:
     runs-on: ubuntu-latest
     permissions:
@@ -150,16 +156,16 @@ jobs:
         id: build
         with:
           context: ${{ inputs.docker_context }}
-          push: true
+          push: ${{ inputs.dry_run == false }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: ${{ inputs.dockerfile_path }}
           cache-from: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}:buildcache-${{ inputs.branch }}
           cache-to: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}:buildcache-${{ inputs.branch }},mode=max
           build-args: ${{ inputs.docker_build_args }}
-
   release:
     runs-on: ubuntu-latest
+    if: ${{ inputs.dry_run == false }}
     needs: tag
     steps:
       - uses: actions/checkout@v2
@@ -172,6 +178,7 @@ jobs:
 
   deploy-app:
     runs-on: ubuntu-latest
+    if: ${{ inputs.dry_run == false }}
     needs:
       - deploy-docker
     steps:
