@@ -44,12 +44,13 @@ on:
                 type: boolean
                 default: false
                 description: 'build only with the new version of tag'
+        outputs:
+            pushed_tag:
+                value: ${{ jobs.deploy-docker.outputs.pushed_tag }}
         secrets:
             registry_token:
                 required: true
                 description: 'token to have access to registry'
-        outputs:
-            pushed_tag: ${{ jobs.tag.outputs.pushed_tag }}
 
 jobs:
     deploy-docker:

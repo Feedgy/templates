@@ -19,18 +19,21 @@ on:
                 type: boolean
                 default: false
                 description: 'build only with the new version of tag'
+        outputs:
+            new_tag:
+                value: ${{ jobs.tag-job.outputs.new_tag }}
+            new_version:
+                value: ${{ jobs.tag-job.outputs.new_version }}
+            changelog:
+                value: ${{ jobs.tag-job.outputs.changelog }}
         secrets:
             repos_token:
                 required: true
                 description: 'token to have access to code and infra repository'
-        outputs:
-            new_tag: ${{ jobs.tag.outputs.new_tag }}
-            new_version: ${{ jobs.tag.outputs.new_version }}
-            changelog: ${{ jobs.tag.outputs.changelog }}
 
 
 jobs:
-    tag:
+    tag-job:
         runs-on: ubuntu-latest
         outputs:
             new_tag: ${{ steps.tag_version.outputs.new_tag }}
@@ -39,7 +42,7 @@ jobs:
         steps:
             -   uses: actions/checkout@v2
                 with:
-                    token: ${{ secrets.repos_token}}
+                    token: ${{ secrets.repos_token }}
             -   name: Bump version and push tag
                 id: tag_version
                 uses: mathieudutour/github-tag-action@v6.0
