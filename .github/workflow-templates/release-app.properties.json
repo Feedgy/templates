@@ -1,0 +1,10 @@
+{
+    "name": "Tag - Build - Release application",
+    "description": "Feedgy default release application workflow.",
+    "creator": "Feedgy",
+    "categories": [
+        "Continuous integration",
+        "Deployment",
+        "Dockerfile"
+    ]
+}

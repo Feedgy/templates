@@ -1,0 +1,103 @@
+name: deploy-app
+
+# configure as reusable workflow
+on:
+    workflow_call:
+        inputs:
+            app_name:
+                required: true
+                type: string
+                description: 'name of the application in argocd'
+            image_name:
+                required: true
+                type: string
+                description: 'name of the image'
+            username:
+                required: true
+                type: string
+                description: 'username to push the image can use github.actor'
+            branch:
+                required: true
+                type: string
+                description: 'name of the branch can use github.ref_name'
+            infra_repository:
+                required: true
+                type: string
+                description: 'repository of the infra project'
+            infra_main_branch:
+                required: false
+                type: string
+                default: master
+                description: 'default branch for the infra repository'
+            push_name:
+                required: false
+                type: string
+                default: 'Super Bot'
+                description: 'name of the user who will push on infra repository'
+            push_mail:
+                required: false
+                type: string
+                default: 'bot@feedgy.solar'
+                description: 'mail of the user who will push on infra repository'
+            tag:
+                required: true
+                type: string
+                description: 'tag to release'
+            changelog:
+                required: true
+                type: string
+                description: 'changelog related to the release'
+        secrets:
+            repos_token:
+                required: true
+                description: 'token to have access to code and infra repository'
+
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v2
+            -   name: Create a GitHub release
+                uses: ncipollo/release-action@v1
+                with:
+                    tag: ${{ inputs.tag }}
+                    name: Release ${{ inputs.tag }}
+                    body: ${{ inputs.changelog }}
+
+    deploy-app:
+        runs-on: ubuntu-latest
+        steps:
+            # get the source of the infra
+            -   uses: actions/checkout@v2
+                with:
+                    repository: ${{ inputs.infra_repository }}
+                    ref: ${{ inputs.infra_main_branch }}
+                    token: ${{ secrets.repos_token }}
+            -   uses: actions/setup-python@v2
+            -   name: "install pyyaml"
+                run: pip install pyyaml
+            -   name: "replace value version"
+                run: |
+                    cd ${{ inputs.APP_NAME }}
+                    # save a python script to replace values
+                    echo "
+                    import yaml
+                    from pathlib import Path
+                    import sys
+                    file_path = Path('values-${{ inputs.branch }}.yaml')
+                    config = yaml.safe_load(file_path.read_text())
+                    
+                    # Configuration to modify
+                    config['image']['tag'] = '${{ inputs.tag }}'
+                    
+                    file_path.write_text(yaml.dump(config))
+                    " > script.py
+                    python script.py
+                    
+                    # push the modification
+                    git add values-${{ inputs.branch }}.yaml
+                    git config --local user.email "${{ inputs.push_mail }}"
+                    git config --local user.name "${{ inputs.push_name }}"
+                    git commit -m "upgrade ${{ inputs.APP_NAME }} on ${{ inputs.branch }} environment to ${{ inputs.tag }}"
+                    git push

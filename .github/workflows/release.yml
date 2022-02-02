@@ -2,216 +2,216 @@ name: release
 
 # configure as reusable workflow
 on:
-  workflow_call:
-    inputs:
-      app_name:
-        required: true
-        type: string
-        description: 'name of the application in argocd'
-      registry:
-        required: false
-        type: string
-        default: 'ghcr.io'
-        description: 'registry to push and get the image'
-      image_name:
-        required: true
-        type: string
-        description: 'name of the image'
-      docker_context:
-        required: false
-        type: string 
-        default: .
-        description: 'context of build for docker'
-      docker_build_args:
-        required: false
-        type: string
-        description: 'docker build args formated in multiline string with |'
-      dockerfile_path: 
-        required: false
-        type: string 
-        default: ./Dockerfile
-        description: 'location to get the Dockerfile for the build'
-      username:
-        required: true
-        type: string
-        description: 'username to push the image can use github.actor'
-      pre_release_branches: 
-        required: false
-        type: string
-        default: staging
-        description: 'comma separated list of pre release branches'
-      release_branches:
-        required: false
-        type: string
-        default: production
-        description: 'comma separated list of release branches'
-      branch:
-        required: true
-        type: string 
-        description: 'name of the branch can use github.ref_name'
-      infra_repository:
-        required: true
-        type: string
-        description: 'repository of the infra project'
-      infra_main_branch: 
-        required: false
-        type: string
-        default: master
-        description: 'default branch for the infra repository'
-      push_name:
-        required: false
-        type: string
-        default: 'Super Bot'
-        description: 'name of the user who will push on infra repository'
-      push_mail:
-        required: false
-        type: string
-        default: 'bot@feedgy.solar'
-        description: 'mail of the user who will push on infra repository'
-      dry_run: 
-        required: false
-        type: boolean
-        default: false
-        description: 'build only with the new version of tag'
-    secrets:
-      registry_token:
-        required: true
-        description: 'token to have access to registry'
-      repos_token: 
-        required: true
-        description: 'token to have access to code and infra repository'
+    workflow_call:
+        inputs:
+            app_name:
+                required: true
+                type: string
+                description: 'name of the application in argocd'
+            registry:
+                required: false
+                type: string
+                default: 'ghcr.io'
+                description: 'registry to push and get the image'
+            image_name:
+                required: true
+                type: string
+                description: 'name of the image'
+            docker_context:
+                required: false
+                type: string
+                default: .
+                description: 'context of build for docker'
+            docker_build_args:
+                required: false
+                type: string
+                description: 'docker build args formated in multiline string with |'
+            dockerfile_path:
+                required: false
+                type: string
+                default: ./Dockerfile
+                description: 'location to get the Dockerfile for the build'
+            username:
+                required: true
+                type: string
+                description: 'username to push the image can use github.actor'
+            pre_release_branches:
+                required: false
+                type: string
+                default: staging
+                description: 'comma separated list of pre release branches'
+            release_branches:
+                required: false
+                type: string
+                default: production
+                description: 'comma separated list of release branches'
+            branch:
+                required: true
+                type: string
+                description: 'name of the branch can use github.ref_name'
+            infra_repository:
+                required: true
+                type: string
+                description: 'repository of the infra project'
+            infra_main_branch:
+                required: false
+                type: string
+                default: master
+                description: 'default branch for the infra repository'
+            push_name:
+                required: false
+                type: string
+                default: 'Super Bot'
+                description: 'name of the user who will push on infra repository'
+            push_mail:
+                required: false
+                type: string
+                default: 'bot@feedgy.solar'
+                description: 'mail of the user who will push on infra repository'
+            dry_run:
+                required: false
+                type: boolean
+                default: false
+                description: 'build only with the new version of tag'
+        secrets:
+            registry_token:
+                required: true
+                description: 'token to have access to registry'
+            repos_token:
+                required: true
+                description: 'token to have access to code and infra repository'
 
 
 jobs:
-  tag:
-    runs-on: ubuntu-latest
-    outputs:
-      new_tag: ${{ steps.tag_version.outputs.new_tag }}
-      new_version: ${{ steps.tag_version.outputs.new_version }}
-      changelog: ${{ steps.tag_version.outputs.changelog }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.repos_token}}
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.0
-        with:
-          # use PAT token to enable to merge production in master at release
-          github_token: ${{ secrets.repos_token}}
-          release_branches: ${{ inputs.release_branches }}
-          pre_release_branches: ${{ inputs.pre_release_branches }}
-          dry_run: ${{ inputs.dry_run }}
-  deploy-docker:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    needs:
-      - tag
-    outputs:
-      pushed_tag: ${{needs.tag.outputs.new_tag}}
+    tag:
+        runs-on: ubuntu-latest
+        outputs:
+            new_tag: ${{ steps.tag_version.outputs.new_tag }}
+            new_version: ${{ steps.tag_version.outputs.new_version }}
+            changelog: ${{ steps.tag_version.outputs.changelog }}
+        steps:
+            -   uses: actions/checkout@v2
+                with:
+                    token: ${{ secrets.repos_token}}
+            -   name: Bump version and push tag
+                id: tag_version
+                uses: mathieudutour/github-tag-action@v6.0
+                with:
+                    # use PAT token to enable to merge production in master at release
+                    github_token: ${{ secrets.repos_token}}
+                    release_branches: ${{ inputs.release_branches }}
+                    pre_release_branches: ${{ inputs.pre_release_branches }}
+                    dry_run: ${{ inputs.dry_run }}
+    deploy-docker:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+        needs:
+            - tag
+        outputs:
+            pushed_tag: ${{needs.tag.outputs.new_tag}}
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v2
 
-      - id: image_registry_lower
-        uses: ASzc/change-string-case-action@v2
-        with:
-          string: ${{ inputs.registry }}/${{ inputs.IMAGE_NAME }}
-      # Set docker driver to permit cache
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-        with:
-          driver: docker-container
-          driver-opts: |
-            image=moby/buildkit:master
-            network=host
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
-      - name: Log into registry ${{ inputs.registry }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
-        with:
-          registry: ${{ inputs.registry }}
-          username: ${{ inputs.username }}
-          password: ${{ secrets.registry_token }}
+            -   id: image_registry_lower
+                uses: ASzc/change-string-case-action@v2
+                with:
+                    string: ${{ inputs.registry }}/${{ inputs.IMAGE_NAME }}
+            # Set docker driver to permit cache
+            -   name: Set up Docker Buildx
+                uses: docker/setup-buildx-action@v1
+                with:
+                    driver: docker-container
+                    driver-opts: |
+                        image=moby/buildkit:master
+                        network=host
+            # Login against a Docker registry except on PR
+            # https://github.com/docker/login-action
+            -   name: Log into registry ${{ inputs.registry }}
+                if: github.event_name != 'pull_request'
+                uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+                with:
+                    registry: ${{ inputs.registry }}
+                    username: ${{ inputs.username }}
+                    password: ${{ secrets.registry_token }}
 
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@e5622373a38e60fb6d795a4421e56882f2d7a681
-        with:
-          github-token: ${{ secrets.registry_token }}
-          images: ${{ steps.image_registry_lower.outputs.lowercase }}
-          tags: |
-            type=semver, pattern={{raw}}, value=${{needs.tag.outputs.new_tag}}
-            type=ref, event=branch
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
-        id: build
-        with:
-          context: ${{ inputs.docker_context }}
-          push: ${{ inputs.dry_run == false }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          file: ${{ inputs.dockerfile_path }}
-          cache-from: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}:buildcache-${{ inputs.branch }}
-          cache-to: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}:buildcache-${{ inputs.branch }},mode=max
-          build-args: ${{ inputs.docker_build_args }}
-  release:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.dry_run == false }}
-    needs: tag
-    steps:
-      - uses: actions/checkout@v2
-      - name: Create a GitHub release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ needs.tag.outputs.new_version }}
-          name: Release ${{ needs.tag.outputs.new_version }}
-          body: ${{ needs.tag.outputs.changelog }}
+            # Extract metadata (tags, labels) for Docker
+            # https://github.com/docker/metadata-action
+            -   name: Extract Docker metadata
+                id: meta
+                uses: docker/metadata-action@e5622373a38e60fb6d795a4421e56882f2d7a681
+                with:
+                    github-token: ${{ secrets.registry_token }}
+                    images: ${{ steps.image_registry_lower.outputs.lowercase }}
+                    tags: |
+                        type=semver, pattern={{raw}}, value=${{needs.tag.outputs.new_tag}}
+                        type=ref, event=branch
+            # Build and push Docker image with Buildx (don't push on PR)
+            # https://github.com/docker/build-push-action
+            -   name: Build and push Docker image
+                uses: docker/build-push-action@v2
+                id: build
+                with:
+                    context: ${{ inputs.docker_context }}
+                    push: ${{ inputs.dry_run == false }}
+                    tags: ${{ steps.meta.outputs.tags }}
+                    labels: ${{ steps.meta.outputs.labels }}
+                    file: ${{ inputs.dockerfile_path }}
+                    cache-from: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}:buildcache-${{ inputs.branch }}
+                    cache-to: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}:buildcache-${{ inputs.branch }},mode=max
+                    build-args: ${{ inputs.docker_build_args }}
+    release:
+        runs-on: ubuntu-latest
+        if: ${{ inputs.dry_run == false }}
+        needs: tag
+        steps:
+            -   uses: actions/checkout@v2
+            -   name: Create a GitHub release
+                uses: ncipollo/release-action@v1
+                with:
+                    tag: ${{ needs.tag.outputs.new_version }}
+                    name: Release ${{ needs.tag.outputs.new_version }}
+                    body: ${{ needs.tag.outputs.changelog }}
 
-  deploy-app:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.dry_run == false }}
-    needs:
-      - deploy-docker
-    steps:
-      # get the source of the infra
-      - uses: actions/checkout@v2
-        with:
-          repository: ${{ inputs.infra_repository }}
-          ref: ${{ inputs.infra_main_branch }}
-          token: ${{ secrets.repos_token }}
-      - uses: actions/setup-python@v2
-      - name: "install pyyaml"
-        run: pip install pyyaml 
-      - name: "replace value version"
-        run: |
-          cd ${{ inputs.APP_NAME }}
-          # save a python script to replace values
-          echo "
-          import yaml
-          from pathlib import Path
-          import sys
-          file_path = Path('values-${{ inputs.branch }}.yaml')
-          config = yaml.safe_load(file_path.read_text())
-
-          # Configuration to modify
-          config['image']['tag'] = '${{ needs.deploy-docker.outputs.pushed_tag }}'
-
-          file_path.write_text(yaml.dump(config))
-          " > script.py
-          python script.py
-
-          # push the modification
-          git add values-${{ inputs.branch }}.yaml
-          git config --local user.email "${{ inputs.push_mail }}"
-          git config --local user.name "${{ inputs.push_name }}"
-          git commit -m "upgrade ${{ inputs.APP_NAME }} on ${{ inputs.branch }} environment to ${{ needs.deploy-docker.outputs.pushed_tag }}"
-          git push
+    deploy-app:
+        runs-on: ubuntu-latest
+        if: ${{ inputs.dry_run == false }}
+        needs:
+            - deploy-docker
+        steps:
+            # get the source of the infra
+            -   uses: actions/checkout@v2
+                with:
+                    repository: ${{ inputs.infra_repository }}
+                    ref: ${{ inputs.infra_main_branch }}
+                    token: ${{ secrets.repos_token }}
+            -   uses: actions/setup-python@v2
+            -   name: "install pyyaml"
+                run: pip install pyyaml
+            -   name: "replace value version"
+                run: |
+                    cd ${{ inputs.APP_NAME }}
+                    # save a python script to replace values
+                    echo "
+                    import yaml
+                    from pathlib import Path
+                    import sys
+                    file_path = Path('values-${{ inputs.branch }}.yaml')
+                    config = yaml.safe_load(file_path.read_text())
+                    
+                    # Configuration to modify
+                    config['image']['tag'] = '${{ needs.deploy-docker.outputs.pushed_tag }}'
+                    
+                    file_path.write_text(yaml.dump(config))
+                    " > script.py
+                    python script.py
+                    
+                    # push the modification
+                    git add values-${{ inputs.branch }}.yaml
+                    git config --local user.email "${{ inputs.push_mail }}"
+                    git config --local user.name "${{ inputs.push_name }}"
+                    git commit -m "upgrade ${{ inputs.APP_NAME }} on ${{ inputs.branch }} environment to ${{ needs.deploy-docker.outputs.pushed_tag }}"
+                    git push

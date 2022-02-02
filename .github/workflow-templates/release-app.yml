@@ -1,0 +1,66 @@
+name: release-app
+
+env:
+    INFRA_REPO: url-to-infra-repo
+    APP_NAME: your-arog-cd-app
+    IMAGE_NAME: ${{ github.repository }}
+    USERNAME: ${{ github.actor }}
+    BRANCH: ${{ github.ref_name }}
+
+on:
+    # Triggers the workflow on push for the release branches
+    push:
+        branches: [ staging, production ]
+    # Can release manually (for test with dry-run enabled)
+    workflow_dispatch:
+        inputs:
+            dry-run:
+                description: 'dry run'
+                type: boolean
+                required: false
+
+jobs:
+    tag:
+        uses: feedgy/templates/.github/workflows/tag.yml@main
+        with:
+            dry_run: ${{ github.event.inputs.dry-run }}
+        #   optional: (w default)
+        #    pre_release_branches: staging
+        #    release_branches: production
+        secrets:
+            repos_token: ${{ secrets.ACCESS_TOKEN }}
+    build:
+        uses: feedgy/templates/.github/workflows/build-docker.yml@main
+        needs:
+            - tag
+        with:
+            image_name: ${{ github.repository }}
+            username: ${{ env.USERNAME }}
+            branch: ${{ env.BRANCH }}
+            tag: ${{ needs.tag.new_tag }}
+            dry_run: ${{ inputs.dry_run }}
+        #   optional: (w default)
+        #    docker_context: .
+        #    docker_build_args: (None)
+        #    dockerfile_path: ./Dockerfile
+        secrets:
+            registry_token: ${{ secrets.GITHUB_TOKEN }}
+    deploy-and-release:
+        uses: feedgy/templates/.github/workflows/deploy-app.yml@main
+        needs:
+            - tag
+            - build
+        with:
+            app_name: ${{ env.APP_NAME }}
+            image_name: ${{ env.IMAGE_NAME }}
+            username: ${{ env.USERNAME }}
+            branch: ${{ env.BRANCH  }}
+            infra_repository: ${{ env.INFRA_REPO }}
+            tag: ${{ needs.build.outputs.tag }}
+            changelog: ${{ needs.tag.outputs.changelog }}
+        #   optional: (w default)
+        #    infra_main_branch: master
+        #    push_name: 'Super Bot'
+        #    push_mail: 'bot@feedgy.solar'
+        secrets:
+            repos_token: ${{ secrets.ACCESS_TOKEN }}
