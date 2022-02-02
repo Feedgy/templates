@@ -19,14 +19,17 @@ on:
                 type: boolean
                 default: false
                 description: 'build only with the new version of tag'
+        outputs:
+            new_tag:
+                value: ${{ jobs.tag.outputs.new_tag }}
+            new_version:
+                value: ${{ jobs.tag.outputs.new_version }}
+            changelog:
+                value: ${{ jobs.tag.outputs.changelog }}
         secrets:
             repos_token:
                 required: true
                 description: 'token to have access to code and infra repository'
-        outputs:
-            new_tag: ${{ jobs.tag.outputs.new_tag }}
-            new_version: ${{ jobs.tag.outputs.new_version }}
-            changelog: ${{ jobs.tag.outputs.changelog }}
 
 
 jobs:
