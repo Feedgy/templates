@@ -84,7 +84,7 @@ on:
 
 jobs:
     tag:
-        uses: ./tag.yml
+        uses: ./.github/workflows/tag.yml
         with:
             pre_release_branches: ${{ inputs.pre_release_branches }}
             release_branches: ${{ inputs.release_branches }}
@@ -92,7 +92,7 @@ jobs:
         secrets:
             repos_token: ${{ secrets.repos_token }}
     build:
-        uses: ./build-docker.yml
+        uses: ./.github/workflows/build-docker.yml
         needs:
             - tag
         with:
@@ -108,7 +108,7 @@ jobs:
         secrets:
             registry_token: ${{ source.registry_token }}
     deploy-and-release:
-        uses: ./deploy-app.yml
+        uses: ./.github/workflows/deploy-app.yml
         needs:
             - tag
             - build
