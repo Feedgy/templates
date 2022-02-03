@@ -40,6 +40,7 @@ jobs:
             tag: ${{ needs.tag.new_tag }}
             dry_run: ${{ github.event.inputs.dry_run }}
         #   optional: (w default)
+        #    registry: ghcr.io
         #    docker_context: .
         #    docker_build_args: (None)
             dockerfile_path: ./docker/Dockerfile
