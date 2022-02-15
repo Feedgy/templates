@@ -73,6 +73,13 @@ on:
                 type: boolean
                 default: false
                 description: 'build only with the new version of tag'
+            git_lfs:
+                required: false
+                type: boolean
+                default: false
+                description: 'git lfs checkout'
+
+        
         secrets:
             registry_token:
                 required: true
@@ -80,6 +87,7 @@ on:
             repos_token:
                 required: true
                 description: 'token to have access to code and infra repository'
+            
 
 
 jobs:
@@ -115,7 +123,8 @@ jobs:
         steps:
             -   name: Checkout repository
                 uses: actions/checkout@v2
-
+                with:
+                    lfs: ${{ inputs.git_lfs }}
             -   id: image_registry_lower
                 uses: ASzc/change-string-case-action@v2
                 with:
@@ -169,6 +178,8 @@ jobs:
         needs: tag
         steps:
             -   uses: actions/checkout@v2
+                with:
+                    lfs: ${{ inputs.git_lfs }}
             -   name: Create a GitHub release
                 uses: ncipollo/release-action@v1
                 with:
