@@ -27,6 +27,11 @@ on:
                 type: string
                 default: ./Dockerfile
                 description: 'location to get the Dockerfile for the build'
+            docker_target:
+                required: false
+                type: string
+                default: ''
+                description: 'Sets the target to build Dockerfile'
             username:
                 required: true
                 type: string
@@ -111,3 +116,4 @@ jobs:
                     cache-from: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}:buildcache-${{ inputs.branch }}
                     cache-to: type=registry,ref=${{ steps.image_registry_lower.outputs.lowercase }}:buildcache-${{ inputs.branch }},mode=max
                     build-args: ${{ inputs.docker_build_args }}
+                    target: ${{ inputs.docker_target }}
