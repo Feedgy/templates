@@ -83,8 +83,12 @@ on:
                 type: boolean
                 default: false
                 description: 'git lfs checkout'
+            tag_prefix:
+                required: false
+                type: string
+                default: 'image'
+                description: 'path prefix to access image configuration tag. Default (image)'
 
-        
         secrets:
             registry_token:
                 required: true
@@ -219,8 +223,11 @@ jobs:
                     file_path = Path('values-${{ inputs.branch }}.yaml')
                     config = yaml.safe_load(file_path.read_text())
                     
+                    sub_config = config
                     # Configuration to modify
-                    config['image']['tag'] = '${{ needs.deploy-docker.outputs.pushed_tag }}'
+                    for prefix in '${{ inputs.tag_prefix }}'.split('/'):
+                        sub_config = sub_config[prefix]
+                    sub_config['tag'] = '${{ needs.deploy-docker.outputs.pushed_tag }}'
                     
                     file_path.write_text(yaml.dump(config))
                     " > script.py
