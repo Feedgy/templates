@@ -88,6 +88,11 @@ on:
                 type: string
                 default: 'image'
                 description: 'path prefix to access image configuration tag. Default (image)'
+            sentry:
+                required: false
+                type: boolean
+                default: false
+                description: 'active sentry release' 
 
         secrets:
             registry_token:
@@ -96,7 +101,12 @@ on:
             repos_token:
                 required: true
                 description: 'token to have access to code and infra repository'
-            
+            SENTRY_AUTH_TOKEN:
+                required: true
+                description: 'token to have access to sentry'
+            SENTRY_ORG: 
+                required: true
+                description: 'sentry organization slug' 
 
 
 jobs:
@@ -198,12 +208,14 @@ jobs:
                     body: ${{ needs.tag.outputs.changelog }}
             -   name: Create Sentry release
                 uses: getsentry/action-release@v1
+                if: ${{ inputs.sentry == true }} 
                 env:
                     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
                     SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
                     SENTRY_PROJECT: ${{ inputs.app_name }}
                 with:
                     environment: ${{ inputs.branch }}
+                    set_commits: skip
     deploy-app:
         runs-on: ubuntu-latest
         if: ${{ inputs.dry_run == false }}
