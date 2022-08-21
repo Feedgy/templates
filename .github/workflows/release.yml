@@ -196,7 +196,14 @@ jobs:
                     tag: ${{ needs.tag.outputs.new_version }}
                     name: Release ${{ needs.tag.outputs.new_version }}
                     body: ${{ needs.tag.outputs.changelog }}
-
+            -   name: Create Sentry release
+                uses: getsentry/action-release@v1
+                env:
+                    SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+                    SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+                    SENTRY_PROJECT: ${{ inputs.app_name }}
+                with:
+                    environment: ${{ inputs.branch }}
     deploy-app:
         runs-on: ubuntu-latest
         if: ${{ inputs.dry_run == false }}
