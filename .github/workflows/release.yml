@@ -102,10 +102,10 @@ on:
                 required: true
                 description: 'token to have access to code and infra repository'
             SENTRY_AUTH_TOKEN:
-                required: true
+                required: false
                 description: 'token to have access to sentry'
             SENTRY_ORG: 
-                required: true
+                required: false
                 description: 'sentry organization slug' 
 
 
