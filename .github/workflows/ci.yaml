@@ -1,0 +1,122 @@
+name: ci
+
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+
+on:
+    workflow_call:
+        inputs:
+            registry:
+                required: false
+                type: string
+                default: 'ghcr.io'
+                description: 'registry to push and get the image'
+            image_name:
+                required: true
+                type: string
+                description: 'name of the image'
+            username:
+                required: true
+                type: string
+                description: 'username to push the image can use github.actor'
+            target_branch:
+                required: false
+                type: string
+                default: 'master'
+                description: 'Sets the target to build Dockerfile'
+            git_lfs:
+                required: false
+                type: boolean
+                default: false
+                description: 'git lfs checkout'
+            test_command:
+                required: false
+                type: string
+                default: 'pytest'
+                description: 'command to run the test'
+
+        secrets:
+            registry_token:
+                required: true
+                description: 'token to have access to registry'
+            repos_token:
+                required: true
+                description: 'token to have access to code and infra repository'
+
+
+jobs:
+    image_tag:
+        name: Image tag for docker image pull
+        runs-on: ubuntu-latest
+        outputs:
+            docker_image: ${{ steps.image_name.outputs.lowercase }}
+        steps:
+            -   id: image_name
+                uses: ASzc/change-string-case-action@v2
+                with:
+                    string: ${{ inputs.image_name }}
+
+    run-linters:
+        name: Run linters
+        permissions:
+            checks: write
+            pull-requests: write
+            contents: read
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: Check out Git repository
+            uses: actions/checkout@v2
+
+        - name: Set up Python
+            uses: actions/setup-python@v1
+            with:
+                python-version: 3.10
+
+        - name: Install Python dependencies
+            run: pip install black flake8
+
+        - name: Run linters
+            uses: wearerequired/lint-action@v2
+            with:
+                github_token: ${{ secrets.repos_token }}
+                github_token:
+                auto_fix: true
+                black: true
+                black_auto_fix: true
+
+        - uses: smelly-python/smell-my-pr@main
+            with: 
+                github_token: ${{ secrets.repos_token }}
+                command: pipenv run smelly-python -d src
+
+    coverage:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Get Coverage
+            uses: orgoro/coverage@v3
+            with:
+                coverageFile: path/to/coverage.xml
+                github_token: ${{ secrets.repos_token }}
+
+    test:
+        name: Run Tests
+        runs-on: ubuntu-latest
+        needs:
+            image_tag
+        container: 
+            image: ${{ inputs.registry }}}/${{ needs.image_tag.outputs.docker_image }}:${{ inputs.target_branch }}
+            options: --user root
+            credentials:
+                username: ${{ inputs.username }}
+                password: ${{ secrets.registry_token }}
+        steps:
+            -   uses: actions/checkout@v2
+                with:
+                    lfs: ${{ inputs.git_lfs }}
+            - name: test
+              run: |
+                ${{ inputs.test_command }}
