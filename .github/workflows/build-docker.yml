@@ -56,15 +56,39 @@ on:
             registry_token:
                 required: true
                 description: 'token to have access to registry'
+            repos_token:
+                required: false
+                description: 'token to have access to code and infra repository'
 
 jobs:
+    tag:
+        runs-on: ubuntu-latest
+        outputs:
+            new_tag: ${{ steps.tag_version.outputs.new_tag }}
+            new_version: ${{ steps.tag_version.outputs.new_version }}
+            changelog: ${{ steps.tag_version.outputs.changelog }}
+        steps:
+            - uses: actions/checkout@v2
+              with:
+                  token: ${{ secrets.repos_token}}
+            - name: Bump version and push tag
+              id: tag_version
+              uses: mathieudutour/github-tag-action@v6.0
+              with:
+                  # use PAT token to enable to merge production in master at release
+                  github_token: ${{ secrets.repos_token}}
+                  release_branches: ${{ inputs.release_branches }}
+                  pre_release_branches: ${{ inputs.pre_release_branches }}
+                  dry_run: ${{ inputs.dry_run }}
     deploy-docker:
         runs-on: ubuntu-latest
         permissions:
             contents: read
             packages: write
+        needs:
+            - tag
         outputs:
-            pushed_tag: ${{ inputs.tag }}
+            pushed_tag: ${{needs.tag.outputs.new_tag}}
         steps:
             -   name: Checkout repository
                 uses: actions/checkout@v2
@@ -100,7 +124,7 @@ jobs:
                     github-token: ${{ secrets.registry_token }}
                     images: ${{ steps.image_registry_lower.outputs.lowercase }}
                     tags: |
-                        type=semver, pattern={{raw}}, value=${{ inputs.tag }}
+                        type=semver, pattern={{raw}}, value=${{ needs.tag.outputs.new_tag }}
                         type=ref, event=branch
             # Build and push Docker image with Buildx (don't push on PR)
             # https://github.com/docker/build-push-action
