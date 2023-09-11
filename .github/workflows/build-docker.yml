@@ -41,8 +41,9 @@ on:
                 type: string
                 description: 'name of the branch can use github.ref_name'
             tag:
-                required: true
+                required: false
                 type: string
+                default: latest
                 description: 'tag to push the image with'
             dry_run:
                 required: false
