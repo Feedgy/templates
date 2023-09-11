@@ -109,7 +109,7 @@ jobs:
     needs:
       - image_tag
     container:
-      image: ${{ inputs.registry }}/${{ needs.image_tag.outputs.docker_image }}:${{ inputs.target_branch }}
+      image: ${{ inputs.registry }}/${{ needs.image_tag.outputs.docker_image }}/${{ inputs.target_branch }}:latest
       options: --user root
       credentials:
         username: ${{ inputs.username }}
