@@ -35,6 +35,11 @@ on:
         type: string
         default: "coverage.xml"
         description: "absolute path to coverage file"
+      enable_black:
+        required: false
+        type: boolean
+        default: false
+        description: "enable black formatter"
 
     secrets:
       registry_token:
@@ -82,6 +87,8 @@ jobs:
 
   formater:
     name: black
+    if:
+      ${{ inputs.enable_black}}
     runs-on: ubuntu-latest
     needs:
       - security-check
