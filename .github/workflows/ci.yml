@@ -40,6 +40,11 @@ on:
         type: boolean
         default: false
         description: "enable black formatter"
+      enable_linter:
+        required: false
+        type: boolean
+        default: false
+        description: "enable linter"
 
     secrets:
       registry_token:
@@ -73,7 +78,7 @@ jobs:
 
   run-linters:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: ${{ inputs.enable_linter}} && github.event_name == 'pull_request' 
     needs:
       - formater
     steps:
@@ -87,8 +92,7 @@ jobs:
 
   formater:
     name: black
-    if:
-      ${{ inputs.enable_black}}
+    if: ${{ inputs.enable_black}}
     runs-on: ubuntu-latest
     needs:
       - security-check
