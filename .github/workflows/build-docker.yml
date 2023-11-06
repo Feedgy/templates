@@ -89,6 +89,10 @@ jobs:
     login-to-amazon-ecr:
         runs-on: ubuntu-latest
         if: github.event_name != 'pull_request' && ${{ inputs.to_ecr }}
+        permissions:
+            contents: read
+            id-token: write
+            packages: write
         steps:
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v4
