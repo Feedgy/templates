@@ -86,32 +86,7 @@ jobs:
                   release_branches: ${{ inputs.release_branches }}
                   pre_release_branches: ${{ inputs.pre_release_branches }}
                   dry_run: ${{ inputs.dry_run }}
-    login-to-amazon-ecr:
-        runs-on: ubuntu-latest
-        if: github.event_name != 'pull_request' && ${{ inputs.to_ecr }}
-        permissions:
-            contents: read
-            id-token: write
-            packages: write
-        steps:
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                role-to-assume: arn:aws:iam::687044813332:role/github-assume-role-stack-Role-tdTka5sntGFH
-                aws-region: eu-west-3
-                mask-aws-account-id: 'false'
-            - name: Login to Amazon ECR
-              id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v2
-              with:
-                mask-password: 'false'
-        outputs:
-            registry: ${{ steps.login-ecr.outputs.registry }}
-            docker_username: ${{ steps.login-ecr.outputs.docker_username_687044813332_dkr_ecr_eu_west_3_amazonaws_com }} # More information on these outputs can be found below in the 'Docker Credentials' section
-            docker_password: ${{ steps.login-ecr.outputs.docker_password_687044813332_dkr_ecr_eu_west_3_amazonaws_com }}
                 
-                
-
     deploy-docker:
         runs-on: ubuntu-latest
         permissions:
@@ -120,9 +95,9 @@ jobs:
             packages: write
         env:
             default_registry: ghcr.io
+            platform: linux/amd64
         needs:
             - tag
-            - login-to-amazon-ecr
         outputs:
             pushed_tag: ${{needs.tag.outputs.new_tag}}
         steps:
@@ -150,13 +125,19 @@ jobs:
                     registry: ghcr.io
                     username: ${{ inputs.username }}
                     password: ${{ secrets.registry_token }}
+            - name: Configure AWS credentials
+              if: github.event_name != 'pull_request' && ${{ inputs.to_ghcr }}
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                role-to-assume: arn:aws:iam::687044813332:role/github-assume-role-stack-Role-tdTka5sntGFH
+                aws-region: eu-west-3
+                mask-aws-account-id: 'false'
+                
             -   name: Log into registry ECR
                 if: github.event_name != 'pull_request' && ${{ inputs.to_ghcr }}
-                uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+                uses: docker/login-action@v3
                 with:
-                    registry: ${{ needs.login-to-amazon-ecr.outputs.registry }}
-                    username: ${{ needs.login-to-amazon-ecr.outputs.docker_username }}
-                    password: ${{ needs.login-to-amazon-ecr.outputs.docker_password }} 
+                    registry: 687044813332.dkr.ecr.eu-west-3.amazonaws.com
             # Extract metadata (tags, labels) for Docker
             # https://github.com/docker/metadata-action
             -   name: Extract Docker metadata
@@ -164,7 +145,9 @@ jobs:
                 uses: docker/metadata-action@e5622373a38e60fb6d795a4421e56882f2d7a681
                 with:
                     github-token: ${{ secrets.registry_token }}
-                    images: ${{ steps.image_registry_lower.outputs.lowercase }}
+                    images: |
+                        ${{ steps.image_registry_lower.outputs.lowercase }}
+                        687044813332.dkr.ecr.eu-west-3.amazonaws.com/data-science
                     tags: |
                         type=semver, pattern={{raw}}, value=${{ needs.tag.outputs.new_tag }}
                         type=ref, event=branch
