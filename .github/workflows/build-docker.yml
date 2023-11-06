@@ -93,7 +93,6 @@ jobs:
             id-token: write
             packages: write
         env:
-            platforms: linux/amd64,linux/arm64
             default_registry: ghcr.io
         needs:
             - tag
@@ -155,7 +154,6 @@ jobs:
                 with:
                     context: ${{ inputs.docker_context }}
                     push: ${{ inputs.dry_run == false }}
-                    platforms: ${{ env.platforms }}
                     tags: ${{ steps.meta.outputs.tags }}
                     labels: ${{ steps.meta.outputs.labels }}
                     file: ${{ inputs.dockerfile_path }}
