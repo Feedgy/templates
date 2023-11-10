@@ -119,14 +119,15 @@ jobs:
             # Login against a Docker registry except on PR
             # https://github.com/docker/login-action
             -   name: Log into registry ghcr.io
-                if: github.event_name != 'pull_request' && ${{ inputs.to_ghcr }}
+                if: ${{ inputs.to_ghcr == true && github.event_name != 'pull_request'}}
                 uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
                 with:
                     registry: ghcr.io
                     username: ${{ inputs.username }}
                     password: ${{ secrets.registry_token }}
+
             - name: Configure AWS credentials
-              if: github.event_name != 'pull_request' && ${{ inputs.to_ecr }}
+              if: ${{ inputs.to_ecr == true && github.event_name != 'pull_request'}}
               uses: aws-actions/configure-aws-credentials@v4
               with:
                 role-to-assume: arn:aws:iam::687044813332:role/github-assume-role-stack-Role-tdTka5sntGFH
@@ -134,10 +135,11 @@ jobs:
                 mask-aws-account-id: 'false'
                 
             -   name: Log into registry ECR
-                if: github.event_name != 'pull_request' && ${{ inputs.to_ecr }}
+                if: ${{ inputs.to_ecr == true && github.event_name != 'pull_request'}}
                 uses: docker/login-action@v3
                 with:
                     registry: 687044813332.dkr.ecr.eu-west-3.amazonaws.com
+            
             # Extract metadata (tags, labels) for Docker
             # https://github.com/docker/metadata-action
             -   name: Extract Docker metadata
@@ -147,7 +149,6 @@ jobs:
                     github-token: ${{ secrets.registry_token }}
                     images: |
                         ${{ steps.image_registry_lower.outputs.lowercase }}
-                        687044813332.dkr.ecr.eu-west-3.amazonaws.com/data-science
                     tags: |
                         type=semver, pattern={{raw}}, value=${{ needs.tag.outputs.new_tag }}
                         type=ref, event=branch
