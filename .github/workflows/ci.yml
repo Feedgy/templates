@@ -131,7 +131,8 @@ jobs:
           lfs: ${{ inputs.git_lfs }}
       - name: test
         run: |
-          python -m pytest --cov --cov-report=xml:${{ inputs.coverage_file_path }}
+          pip install pytest pytest-cov
+          python -m pytest --cov --cov-report=xml:${{ inputs.coverage_file_path }} 
       - name: Coverage Report
         uses: orgoro/coverage@v3
         if: github.event_name == 'pull_request'
