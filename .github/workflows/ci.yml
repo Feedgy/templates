@@ -45,6 +45,11 @@ on:
         type: boolean
         default: false
         description: "enable linter"
+      system_user:
+        required: false
+        type: string
+        default: "root"
+        description: "system user to run the container"
 
     secrets:
       registry_token:
@@ -129,10 +134,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           lfs: ${{ inputs.git_lfs }}
+
       - name: test
         run: |
-          pip install pytest pytest-cov
-          python -m pytest --cov --cov-report=xml:${{ inputs.coverage_file_path }} 
+          sudo -u ${{ inputs.system_user}} python -m pytest --cov --cov-report=xml:${{ inputs.coverage_file_path }} 
       - name: Coverage Report
         uses: orgoro/coverage@v3
         if: github.event_name == 'pull_request'
