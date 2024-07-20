@@ -7,6 +7,11 @@ concurrency:
 on:
   workflow_call:
     inputs:
+      project_type:
+        required: false
+        type: string
+        default: "python"
+        description: "Type of project (python or typescript)"
       registry:
         required: false
         type: string
@@ -38,7 +43,7 @@ on:
       enable_black:
         required: false
         type: boolean
-        default: false
+        default: true
         description: "enable black formatter"
       enable_linter:
         required: false
@@ -50,7 +55,6 @@ on:
         type: string
         default: "python -m pytest"
         description: "test command"
-
 
     secrets:
       registry_token:
@@ -80,42 +84,45 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Bandit
+        if: ${{ inputs.project_type == 'python' }}
         uses: jpetrucciani/bandit-check@main
-
-  run-linters:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.enable_linter}} && github.event_name == 'pull_request' 
-    needs:
-      - formater
-    steps:
-      - uses: actions/checkout@v2
-      - name: Flake8
-        uses: sanoguzhan/lintly-flake8-github-action@master
-        with:
-          token: ${{ secrets.lintly_token }}
-          failIf: new
-          args: "--ignore=E121,E123 ."
+      - name: NPM Audit
+        if: ${{ inputs.project_type == 'typescript' }}
+        run: npm audit
 
   formater:
-    name: black
-    if: ${{ inputs.enable_black}}
+    name: Formatter
+    if: ${{ inputs.enable_black && inputs.project_type == 'python' }}
     runs-on: ubuntu-latest
     needs:
       - security-check
     steps:
       - uses: actions/checkout@v2
       - name: Check files using the black formatter
-        uses: datadog/action-py-black-formatter@v2.1
-        id: action_black
+        id: black
+        run: |
+          pip install black
+          black --check .
+      - name: Apply Black formatter
+        if: failure()
+        run: |
+          black .
+      - name: Commit changes
+        if: failure()
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git add .
+          git commit -m "Format Python code with psf/black"
       - name: Create Pull Request
-        if: steps.action_black.outputs.is_formatted == 'true'
+        if: failure()
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.repos_token }}
-          title: "Format Python code with psf/black push"
+          title: "Format Python code with psf/black"
           commit-message: ":art: Format Python code with psf/black"
           body: |
-            There appear to be some python formatting errors in ${{ github.sha }}. This pull request
+            There appear to be some Python formatting errors in ${{ github.sha }}. This pull request
             uses the [psf/black](https://github.com/psf/black) formatter to fix these issues.
           base: ${{ github.head_ref }}
           branch: actions/black
@@ -139,13 +146,46 @@ jobs:
       - name: Set Permissions
         run: |
           chmod -R 777 "$(pwd)"
-      - name: Run test
+      - name: Run Python tests
+        if: ${{ inputs.project_type == 'python' }}
         run: |
           mkdir -p ${{ github.workspace }}/coverage_report
           ${{ inputs.test_command }} --cov --cov-report=xml:coverage.xml
+      - name: Run TypeScript tests
+        if: ${{ inputs.project_type == 'typescript' }}
+        run: |
+          npm install
+          npm run test
       - name: Coverage Report
         uses: orgoro/coverage@v3
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && inputs.project_type == 'python'
         with:
           coverageFile: coverage.xml
           token: ${{ secrets.repos_token }}
+
+  static-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Flake8
+        if: ${{ inputs.project_type == 'python' }}
+        run: |
+          pip install flake8
+          flake8 .
+      - name: Run ESLint
+        if: ${{ inputs.project_type == 'typescript' }}
+        run: |
+          npm install
+          npm run lint
+
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Secret Scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
