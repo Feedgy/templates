@@ -144,7 +144,7 @@ jobs:
       - uses: actions/checkout@master
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/python@master
-        if: github.event.action == 'opened' && github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request'
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         
