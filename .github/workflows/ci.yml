@@ -54,9 +54,7 @@ on:
       repos_token:
         required: true
         description: "token to have access to code and infra repository"
-      lintly_token:
-        required: true
-        description: "token to have access to lintly"
+
 
 jobs:
   image_tag:
