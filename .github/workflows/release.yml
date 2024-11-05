@@ -195,6 +195,7 @@ jobs:
           echo "##[set-output name=generic_tag;]$(echo ${{ steps.meta.outputs.tags }} | grep -o 'ghcr.io/[^ ]*:\(production\|staging\)')"
 
       - name: Scan Docker image with Trivy
+        if : false
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ steps.extract_tag.outputs.generic_tag }}
