@@ -88,7 +88,7 @@
                 <mxCell id="29" value="&lt;b style=&quot;&quot;&gt;&lt;font style=&quot;&quot; color=&quot;#000000&quot;&gt;7. change version &lt;br&gt;in values-&amp;lt;branch&amp;gt;.yaml&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
                     <mxGeometry x="136.2" y="40" width="160" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="31" value="&lt;h1&gt;&lt;font color=&quot;#000000&quot;&gt;workflows/release.yml&lt;/font&gt;&lt;/h1&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=#000000;fillColor=none;fontSize=14;strokeWidth=2;dashed=1;" parent="1" vertex="1">
+                <mxCell id="31" value="&lt;h1&gt;&lt;font color=&quot;#000000&quot;&gt;workflows/release.yml&lt;/font&gt;&lt;/h1&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;strokeWidth=2;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="275.2" y="440" width="320" height="80" as="geometry"/>
                 </mxCell>
             </root>

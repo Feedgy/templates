@@ -1,6 +1,12 @@
+---
+runme:
+  id: 01JCGQD1DND3ZQ2QJSXS026NM7
+  version: v3
+---
+
 # templates
 
-Directory to group all workflow at the same place.
+Repository to group all workflow at the same place.
 
 ## release
 
