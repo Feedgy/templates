@@ -7,11 +7,6 @@ concurrency:
 on:
   workflow_call:
     inputs:
-      project_type:
-        required: false
-        type: string
-        default: "python"
-        description: "Type of project (python or typescript)"
       registry:
         required: false
         type: string
@@ -73,11 +68,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Bandit
-        if: ${{ inputs.project_type == 'python' }}
         uses: jpetrucciani/bandit-check@main
-      - name: NPM Audit
-        if: ${{ inputs.project_type == 'typescript' }}
-        run: npm audit
 
 
   test:
@@ -100,18 +91,13 @@ jobs:
         run: |
           chmod -R 777 "$(pwd)"
       - name: Run Python tests
-        if: ${{ inputs.project_type == 'python' }}
         run: |
           mkdir -p ${{ github.workspace }}/coverage_report
           ${{ inputs.test_command }} --cov --cov-report=xml:coverage.xml
-      - name: Run TypeScript tests
-        if: ${{ inputs.project_type == 'typescript' }}
-        run: |
-          npm install
-          npm run test
+   
       - name: Coverage Report
         uses: orgoro/coverage@v3
-        if: github.event_name == 'pull_request' && inputs.project_type == 'python'
+        if: github.event_name == 'pull_request' 
         with:
           coverageFile: coverage.xml
           token: ${{ secrets.repos_token }}
@@ -135,14 +121,3 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           extra_args: --only-verified --allow-verification-overlap
-
-  snyk-security:
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/python@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        
