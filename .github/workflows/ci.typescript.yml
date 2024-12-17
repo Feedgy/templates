@@ -1,0 +1,80 @@
+name: Next.js CI Workflow
+
+on:
+  workflow_call:
+    inputs:
+      lint-command:
+        description: "Command to run lint checks"
+        required: false
+        type: string
+        default: "yarn lint"
+      security-check-command:
+        description: "Command to run security checks"
+        required: false
+        type: string
+        default: "yarn audit"
+      test-command:
+        description: "Command to run tests"
+        required: false
+        type: string
+        default: "yarn test"
+
+jobs:
+  setup:
+    outputs: 
+      RUNNER: ${{ runner.name }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: "yarn"
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+  lint:
+    needs: setup
+    runs-on: ${{ needs.setup.outputs.RUNNER }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: "yarn"
+      - name: Lint Check
+        run: ${{ inputs.lint-command }}
+
+  security:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Security Check
+        run: ${{ inputs.security-check-command }}
+
+  build:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Application
+        run: yarn build
+
+  test:
+    needs: setup
+    runs-on: ${{ needs.setup.outputs.RUNNER }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: "yarn"
+
+      - name: Run Tests
+        run: ${{ inputs.test-command }}
