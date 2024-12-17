@@ -36,7 +36,7 @@ jobs:
 
   lint:
     needs: setup
-    runs-on: ${{needs.setup.outputs.RUNNER}}
+    runs-on: ${{ needs.setup.outputs.RUNNER }}
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js 18.x
