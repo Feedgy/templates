@@ -18,7 +18,11 @@ on:
         required: false
         type: string
         default: bot@feedgy.solar
-
+    secrets:
+      DEPLOY_KEY:
+        required: true
+        description: "The private key to use for SSH deploy key"
+    
 jobs:
   merge:
     runs-on: ubuntu-latest
