@@ -18,10 +18,6 @@ on:
         required: false
         type: string
         default: bot@feedgy.solar
-    secrets:
-      ACCESS_TOKEN:
-        required: true
-        description: "token to have access to code repository and registry (passed by caller workflow)"
 
 jobs:
   merge:
