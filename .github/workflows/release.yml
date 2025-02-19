@@ -127,6 +127,7 @@ jobs:
           release_branches: ${{ inputs.release_branches }}
           pre_release_branches: ${{ inputs.pre_release_branches }}
           dry_run: ${{ inputs.dry_run }}
+          fetch_all_tags: true
 
   deploy-docker:
     runs-on: ubuntu-latest
