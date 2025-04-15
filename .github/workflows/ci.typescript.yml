@@ -68,7 +68,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
       - name: Build Application
         env:
           NODE_OPTIONS: --max_old_space_size=4096
