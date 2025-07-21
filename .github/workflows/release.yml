@@ -55,7 +55,7 @@ on:
         type: string
         description: "name of the branch can use github.ref_name"
       infra_repository:
-        required: true
+        default: feedgy/cluster
         type: string
         description: "repository of the infra project"
       infra_main_branch:
