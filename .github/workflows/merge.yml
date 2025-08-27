@@ -2,39 +2,49 @@ name: merge
 
 # configure as reusable workflow
 on:
-    workflow_call:
-        inputs:
-            target_branch:
-                required: true
-                type: string
-            source_branch:
-                required: true
-                type: string
-            bot_name:
-                required: false
-                type: string
-                default: "Super Bot"
-            bot_mail:
-                required: false
-                type: string
-                default: bot@feedgy.solar
-        secrets:
-            ACCESS_TOKEN:
-                required: true
-                description: "token to have access to code repository and registry (passed by caller workflow)"
-
+  workflow_call:
+    inputs:
+      target_branch:
+        required: true
+        type: string
+      source_branch:
+        required: true
+        type: string
+      bot_name:
+        required: false
+        type: string
+        default: "Super Bot"
+      bot_mail:
+        required: false
+        type: string
+        default: bot@feedgy.solar
+    secrets:
+      DEPLOY_KEY:
+        required: true
+        description: "The private key to use for SSH deploy key"
+    
 jobs:
-    merge:
-        runs-on: ubuntu-latest
-        steps:
-            -   uses: actions/checkout@v2
-                with:
-                    ref: ${{ inputs.target_branch }}
-                    token: ${{ secrets.ACCESS_TOKEN }}
-                    fetch-depth: 0
-            -   name: "merge branch"
-                run: |
-                    git config --local user.email '${{ inputs.bot_mail }}'
-                    git config --local user.name '${{ inputs.bot_name }}'
-                    git merge origin/${{ inputs.source_branch }} --no-ff --no-edit
-                    git push
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.target_branch }}
+          fetch-depth: 0
+
+      - name: Install SSH key - GitHub Deploy Key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Add GitHub to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          
+      - name: Merge branch
+        run: |
+          git config --local user.email '${{ inputs.bot_mail }}'
+          git config --local user.name '${{ inputs.bot_name }}'
+          git merge origin/${{ inputs.source_branch }} --no-ff --no-edit
+          git push
