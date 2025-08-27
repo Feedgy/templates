@@ -67,6 +67,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install pbr (fix for Bandit dependency)
+        run: pip install pbr==6.0.0
       - name: Bandit
         uses: jpetrucciani/bandit-check@main
 
