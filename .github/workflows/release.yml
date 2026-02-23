@@ -203,8 +203,6 @@ jobs:
           echo "generic_tag=$GENERIC_TAG" >> $GITHUB_OUTPUT
 
       - name: Scan Docker image with Trivy
-        # Disable this step
-        if: false
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ steps.extract_tag.outputs.generic_tag }}
