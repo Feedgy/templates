@@ -193,11 +193,18 @@ jobs:
       - name: Extract generic tag
         id: extract_tag
         run: |
-          echo "##[set-output name=generic_tag;]$(echo ${{ steps.meta.outputs.tags }} | grep -o 'ghcr.io/[^ ]*:\(production\|staging\)')"
+          echo "---- RAW TAGS ----"
+          echo "${{ steps.meta.outputs.tags }}"
+
+          TAGS="${{ steps.meta.outputs.tags }}"
+          GENERIC_TAG=$(printf "%s\n" "$TAGS" | grep -Eo 'ghcr.io/[^ ]*:(production|staging)' | head -n1)
+
+          echo "Selected tag: $GENERIC_TAG"
+          echo "generic_tag=$GENERIC_TAG" >> $GITHUB_OUTPUT
 
       - name: Scan Docker image with Trivy
         # Disable this step
-        if: false 
+        if: false
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ steps.extract_tag.outputs.generic_tag }}
