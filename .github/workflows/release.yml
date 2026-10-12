@@ -202,6 +202,9 @@ jobs:
           echo "Selected tag: $GENERIC_TAG"
           echo "generic_tag=$GENERIC_TAG" >> $GITHUB_OUTPUT
 
+      - name: Prepare Trivy temp dirs
+        run: mkdir -p "${RUNNER_TEMP}/trivy" "${RUNNER_TEMP}/trivy-tmp"
+
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.35.0
         with:
@@ -215,6 +218,8 @@ jobs:
         env:
           TRIVY_USERNAME: ${{ inputs.username }}
           TRIVY_PASSWORD: ${{ secrets.registry_token }}
+          TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy
+          TMPDIR: ${{ runner.temp }}/trivy-tmp
 
       - name: Upload trivy report as a Github artifact
         uses: actions/upload-artifact@v4
