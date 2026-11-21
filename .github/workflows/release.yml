@@ -63,11 +63,6 @@ on:
         type: string
         default: master
         description: "default branch for the infra repository"
-      gitops_pull_request:
-        required: false
-        type: boolean
-        default: false
-        description: "Open a pull request instead of pushing to the infra branch"
       push_name:
         required: false
         type: string
@@ -253,12 +248,7 @@ jobs:
         run: pip install pyyaml
 
       - name: Replace version in values YAML file of the environment
-        env:
-          GH_TOKEN: ${{ secrets.repos_token }}
         run: |
-          if [ "${{ inputs.gitops_pull_request }}" = "true" ]; then
-            git switch -c "release/${{ inputs.app_name }}-${{ inputs.branch }}-${{ needs.deploy-docker.outputs.pushed_tag }}"
-          fi
           cd ${{ inputs.app_name }}
           # Save a python script to replace values
           echo "
@@ -283,12 +273,7 @@ jobs:
           git config --local user.email "${{ inputs.push_mail }}"
           git config --local user.name "${{ inputs.push_name }}"
           git commit -m "upgrade ${{ inputs.app_name }} on ${{ inputs.branch }} environment to ${{ needs.deploy-docker.outputs.pushed_tag }}"
-          if [ "${{ inputs.gitops_pull_request }}" = "true" ]; then
-            git push --set-upstream origin "$(git branch --show-current)"
-            gh pr create --repo "${{ inputs.infra_repository }}" --base "${{ inputs.infra_main_branch }}" --head "$(git branch --show-current)" --title "upgrade ${{ inputs.app_name }} on ${{ inputs.branch }} to ${{ needs.deploy-docker.outputs.pushed_tag }}" --body "Automated release of ${{ inputs.app_name }} version ${{ needs.deploy-docker.outputs.pushed_tag }}."
-          else
-            git push
-          fi
+          git push
   release:
     runs-on: ubuntu-latest
     if: ${{ ! inputs.dry_run }}
